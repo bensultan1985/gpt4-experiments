@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(15, 1fr);
+        grid-template-rows: repeat(15, 1fr);
+        grid-gap: 1px;
+        background-color: #ccc;
+        width: 500px;
+        height: 500px;
+        margin: 0 auto;
+      }
+      .grid div {
+        background-color: #fff;
+        border: 1px solid #ccc;
+      }
+      .player {
+        background-color: blue;
+      }
+      .end {
+        background-color: green;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="grid">
+        <div id="0-0" class="player"></div>
+        <div id="0-1"></div>
+        <div id="0-2"></div>
+        <div id="0-3"></div>
+        <div id="0-4"></div>
+        <div id="0-5"></div>
+        <div id="0-6"></div>
+        <div id="0-7"></div>
+        <div id="0-8"></div>
+        <div id="0-9"></div>
+        <div id="0-10"></div>
+        <div id="0-11"></div>
+        <div id="0-12"></div>
+        <div id="0-13"></div>
+        <div id="0-14"></div>
+        <div id="14-14" class="end"></div>
+      </div>
+      
+  </body>
+  <script>
+    const grid = document.querySelector(".grid");
+    const gridSquares = Array.from(grid.children);
+    let playerIndex = 0;
+
+    function movePlayer(e) {
+      switch(e.keyCode) {
+        case 37: // left
+          if (playerIndex % 15 !== 0) {
+            gridSquares[playerIndex].classList.remove("player");
+            playerIndex--;
+            gridSquares[playerIndex].classList.add("player");
+          }
+          break;
+        case 38: // up
+          if (playerIndex - 15 >= 0) {
+            gridSquares[playerIndex].classList.remove("player");
+            playerIndex -= 15;
+            gridSquares[playerIndex].classList.add("player");
+          }
+          break;
+        case 39: // right
+          if (playerIndex % 15 !== 14) {
+            gridSquares[playerIndex].classList.remove("player");
+            playerIndex++;
+            gridSquares[playerIndex].classList.add("player");
+          }
+          break;
+        case 40: // down
+          if (playerIndex + 15 < 225) {
+            gridSquares[playerIndex].classList.remove("player");
+            playerIndex += 15;
+            gridSquares[playerIndex].classList.add("player");
+          }
+          break;
+      }
+      if (gridSquares[playerIndex].classList.contains("end")) {
+        alert("You win!");
+        document.removeEventListener("keyup", movePlayer);
+      }
+    }
+
+    document.addEventListener("keyup", movePlayer);
+  </script>
+</html>

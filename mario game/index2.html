@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Simple Mario Game</title>
+  <style>
+    canvas {
+      border: 1px solid black;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="800" height="400"></canvas>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    const player = {
+      x: 50,
+      y: canvas.height - 50,
+      width: 30,
+      height: 30,
+      color: 'red',
+      speed: 3,
+      jumpHeight: 7,
+      gravity: 0.2,
+      velocity: 0,
+      grounded: true,
+      moveLeft: false,
+      moveRight: false,
+      jump: false,
+      lives: 3,
+    };
+
+    const enemy = {
+      width: 20,
+      height: 20,
+      color: 'blue',
+      speed: 2,
+      x: canvas.width,
+      y: canvas.height - 20,
+    };
+
+    let score = 0;
+    let gameWon = false;
+    let gameOver = false;
+    let playAgainButton = false;
+
+    document.addEventListener('keydown', (e) => {
+      switch (e.key) {
+        case 'ArrowLeft':
+          player.moveLeft = true;
+          break;
+        case 'ArrowRight':
+          player.moveRight = true;
+          break;
+        case ' ':
+          if (player.grounded) {
+            player.jump = true;
+            player.grounded = false;
+          }
+          break;
+      }
+    });
+
+    document.addEventListener('keyup', (e) => {
+      switch (e.key) {
+        case 'ArrowLeft':
+          player.moveLeft = false;
+          break;
+        case 'ArrowRight':
+          player.moveRight = false;
+          break;
+      }
+    });
+
+    canvas.addEventListener('click', (e) => {
+      if (playAgainButton) {
+        resetGame();
+      }
+    });
+
+    function resetGame() {
+      score = 0;
+      gameWon = false;
+      gameOver = false;
+      playAgainButton = false;
+      player.lives = 3;
+      enemy.x = canvas.width;
+    }
+
+    function update() {
+      if (player.moveLeft) {
+        player.x -= player.speed;
+      }
+      if (player.moveRight) {
+        player.x += player.speed;
+      }
+      if (player.jump) {
+        player.velocity = -player.jumpHeight;
+        player.jump = false;
+      }
+      player.velocity += player.gravity;
+      player.y += player.velocity;
+      if (player.y >= canvas.height - player.height) {
+        player.y = canvas.height - player.height;
+        player.grounded = true;
+        player.velocity = 0;
+      }
+      enemy.x -= enemy.speed;
+      if (enemy.x < -enemy.width) {
+        enemy.x = canvas.width;
+      }
+
+      if (
+        player.x < enemy.x + enemy.width &&
+        player.x + player.width > enemy.x &&
+        player.y < enemy.y + enemy.height &&
+        player.y + player.height > enemy.y
+      ) {
+        if (player.y + player.height * 0.8 < enemy.y) {
+          score++;
+          enemy.x = canvas.width;
+          if (score === 5) {
+            gameWon = true;
+            playAgainButton = true;
+          }
+        } else {
+          player.lives--;
+          enemy.x = canvas.width;
+          if (player.lives === 0) {
+            gameOver = true;
+            playAgainButton = true;
+          }
+        }
+      }
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw player
+      ctx.fillStyle = player.color;
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+
+      // Draw enemy
+      ctx.fillStyle = enemy.color;
+      ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+
+      // Draw score
+      ctx.font = '20px Arial';
+      ctx.fillStyle = 'black';
+      ctx.fillText('Score: ' + score, canvas.width - 100, 30);
+      ctx.fillText('Lives: ' + player.lives, 20, 30);
+
+      // Draw message and play again button
+      if (gameWon || gameOver) {
+        ctx.font = '32px Arial';
+        ctx.fillText(gameWon ? 'You win.' : 'Sorry, game over.', canvas.width / 2 - 120, canvas.height / 2 - 60);
+
+        ctx.fillStyle = 'green';
+        ctx.fillRect(canvas.width / 2 - 100, canvas.height / 2, 200, 60);
+        ctx.fillStyle = 'white';
+        ctx.font = '24px Arial';
+        ctx.fillText('Play Again?', canvas.width / 2 - 70, canvas.height / 2 + 35);
+        playAgainButton = true;
+      }
+    }
+
+    function gameLoop() {
+      if (!gameWon && !gameOver) {
+        update();
+      }
+      draw();
+      requestAnimationFrame(gameLoop);
+    }
+
+    gameLoop();
+  </script>
+</body>
+</html>

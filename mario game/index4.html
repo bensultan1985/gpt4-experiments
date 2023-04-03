@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Simple Mario Game</title>
+  <style>
+    canvas {
+      border: 1px solid black;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="gameCanvas" width="800" height="400"></canvas>
+  <script>
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const player = {
+      x: 100,
+      y: canvas.height - 200,
+      width: 30,
+      height: 30,
+      color: 'red',
+      speed: 3,
+      jumpHeight: 7,
+      gravity: 0.2,
+      velocity: 0,
+      grounded: false,
+      score: 0,
+      lives: 3,
+      moveLeft: false,
+      moveRight: false,
+      jump: false,
+      yVelocity: 0,
+      xVelocity: 0
+    };
+
+    const enemy = {
+      width: 20,
+      height: 20,
+      color: 'blue',
+      speed: -2, // Changed the speed to a positive value for right to left movement
+      x: 0,
+      y: 0,
+      onGround: false
+    };
+
+    const ground = {
+      segments: [],
+      speed: 1,
+    };
+
+    function generateGroundSegments() {
+    let x = 0;
+    while (x < canvas.width * 2) {
+      const width = Math.random() * 100 + 50;
+      const height = Math.random() * 100 + 50;
+      ground.segments.push({ x, y: canvas.height - height, width, height });
+      x += width;
+    }
+
+    // Set enemy's initial position to the right side of the first ground segment
+    enemy.x = ground.segments[0].x + ground.segments[0].width - enemy.width;
+    enemy.y = ground.segments[0].y - enemy.height;
+  }
+
+    function updateGround() {
+      for (const segment of ground.segments) {
+        segment.x -= ground.speed;
+      }
+      if (ground.segments[0].x + ground.segments[0].width < 0) {
+        ground.segments.shift();
+        const lastSegment = ground.segments[ground.segments.length - 1];
+        const width = Math.random() * 100 + 50;
+        const height = Math.random() * 100 + 50;
+        ground.segments.push({ x: lastSegment.x + lastSegment.width, y: canvas.height - height, width, height });
+      }
+    }
+
+    function drawGround() {
+      ctx.fillStyle = 'green';
+      for (const segment of ground.segments) {
+        ctx.fillRect(segment.x, segment.y, segment.width, segment.height);
+      }
+    }
+
+    function updateEnemyYPosition() {
+      for (const segment of ground.segments) {
+        if (
+          enemy.x + enemy.width > segment.x &&
+          enemy.x < segment.x + segment.width
+        ) {
+          enemy.y = segment.y - enemy.height;
+          break;
+        }
+      }
+    }
+
+    function checkGroundCollision() {
+      player.grounded = false;
+      for (const segment of ground.segments) {
+        if (
+          player.x + player.width > segment.x &&
+          player.x < segment.x + segment.width &&
+          player.y + player.height >= segment.y &&
+          player.y + player.height <= segment.y + player.velocity
+        ) {
+          player.y = segment.y - player.height;
+          player.grounded = true;
+          player.velocity = 0;
+          break;
+        }
+      }
+    }
+
+    function updatePlayer() {
+      const oldX = player.x
+      if (player.moveLeft) {
+        player.x -= player.speed;
+      }
+      if (player.moveRight) {
+        player.x += player.speed;
+      }
+      if (player.jump) {
+        player.velocity = -player.jumpHeight;
+        player.jump = false;
+      }
+
+      player.velocity += player.gravity;
+      player.y += player.velocity;
+
+      checkPlayerWallCollision();
+
+      // Prevent player from moving out of canvas bounds
+      if (player.x < 0) {
+        player.x = 0;
+      } else if (player.x + player.width > canvas.width) {
+        player.x = canvas.width - player.width;
+      }
+    }
+
+    function checkEnemyWallCollision() {
+    let onGround = false;
+
+    for (const segment of ground.segments) {
+      if (
+        enemy.y + enemy.height > segment.y &&
+        enemy.y < segment.y + segment.height
+      ) {
+        if (enemy.speed < 0 && enemy.x < segment.x + segment.width && enemy.x > segment.x) {
+          enemy.speed *= -1;
+        } else if (enemy.speed > 0 && enemy.x + enemy.width > segment.x && enemy.x + enemy.width < segment.x + segment.width) {
+          enemy.speed *= -1;
+        }
+
+        if (enemy.y + enemy.height <= segment.y + enemy.speed) {
+          onGround = true;
+          enemy.y = segment.y - enemy.height;
+        }
+      }
+    }
+
+    enemy.onGround = onGround;
+
+    if (!onGround) {
+      enemy.y += enemy.speed;
+    }
+
+    // Check if the enemy is at the edge of a ground segment
+    let atEdge = true;
+    for (const segment of ground.segments) {
+      if (
+        enemy.y + enemy.height === segment.y &&
+        ((enemy.speed > 0 && enemy.x + enemy.width >= segment.x && enemy.x + enemy.width <= segment.x + segment.width) ||
+          (enemy.speed < 0 && enemy.x >= segment.x && enemy.x <= segment.x + segment.width))
+      ) {
+        atEdge = false;
+        break;
+      }
+    }
+
+    if (atEdge && enemy.onGround) {
+      enemy.speed *= -1;
+    }
+  }
+
+    function drawPlayer() {
+      ctx.fillStyle = 'red';
+      ctx.fillRect(player.x, player.y, player.width, player.height);
+    }
+
+    function updateEnemy() {
+      enemy.x -= enemy.speed;
+      checkEnemyWallCollision();
+
+      if (enemy.x < -enemy.width) {
+        enemy.x = canvas.width;
+      }
+    }
+
+    function drawEnemy() {
+      ctx.fillStyle = enemy.color;
+      ctx.fillRect(enemy.x, enemy.y, enemy.width, enemy.height);
+    }
+
+    function checkPlayerWallCollision() {
+      for (const segment of ground.segments) {
+        if (player.y + player.height > segment.y) {
+          if (player.moveLeft && player.x < segment.x + segment.width && player.x + player.width > segment.x + segment.width) {
+            player.x = segment.x + segment.width;
+          } else if (player.moveRight && player.x + player.width > segment.x && player.x < segment.x) {
+            player.x = segment.x - player.width;
+          }
+        }
+      }
+    }
+
+    function drawScore() {
+      ctx.font = '16px Arial';
+      ctx.fillStyle = 'black';
+      ctx.fillText('Score: ' + player.score, 10, 20);
+      ctx.fillText('Lives: ' + player.lives, 10, 40);
+    }
+
+    document.addEventListener('keydown', (e) => {
+      switch (e.key) {
+        case 'ArrowLeft':
+        player.moveLeft = true;
+          break;
+        case 'ArrowRight':
+          player.moveRight = true;
+          break;
+        case ' ':
+          if (player.grounded) {
+            player.jump = true;
+          }
+          break;
+      }
+    });
+
+    document.addEventListener('keyup', (e) => {
+      switch (e.key) {
+        case 'ArrowLeft':
+          player.moveLeft = false;
+          break;
+        case 'ArrowRight':
+          player.moveRight = false;
+          break;
+      }
+    });
+
+    function gameLoop() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    updateGround();
+    drawGround();
+    checkGroundCollision();
+
+    updatePlayer();
+    drawPlayer();
+
+    updateEnemy();
+    drawEnemy();
+
+    drawScore();
+
+    requestAnimationFrame(gameLoop);
+  }
+
+  generateGroundSegments();
+  player.y = ground.segments[0].y - player.height;
+  gameLoop();
+  </script>
+</body>
+</html>
