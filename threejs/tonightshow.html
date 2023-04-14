@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tonight Show Studio</title>
+    <style>
+        body { margin: 0; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // Set up the scene, camera, and renderer
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+
+        const renderer = new THREE.WebGLRenderer();
+        renderer.setSize(window.innerWidth, window.innerHeight);
+        document.body.appendChild(renderer.domElement);
+
+        // Create stage
+        const stageGeometry = new THREE.BoxGeometry(20, 1, 20);
+        const stageMaterial = new THREE.MeshBasicMaterial({ color: 0x444444 });
+        const stage = new THREE.Mesh(stageGeometry, stageMaterial);
+        stage.position.set(0, -0.5, 0);
+        scene.add(stage);
+
+        // Create desk
+        const deskGeometry = new THREE.BoxGeometry(4, 1, 2);
+        const deskMaterial = new THREE.MeshBasicMaterial({ color: 0x222222 });
+        const desk = new THREE.Mesh(deskGeometry, deskMaterial);
+        desk.position.set(0, 0.5, -8);
+        scene.add(desk);
+
+        // Create seating area
+        const chairGeometry = new THREE.BoxGeometry(1, 1, 1);
+        const chairMaterial = new THREE.MeshBasicMaterial({ color: 0x888888 });
+        const chair1 = new THREE.Mesh(chairGeometry, chairMaterial);
+        chair1.position.set(2, 0.5, -6);
+        scene.add(chair1);
+
+        const chair2 = new THREE.Mesh(chairGeometry, chairMaterial);
+        chair2.position.set(-2, 0.5, -6);
+        scene.add(chair2);
+
+        // Set up camera position
+        camera.position.z = 15;
+        camera.position.y = 5;
+        camera.lookAt(0, 0, 0);
+
+        // Rotation variables
+        const radius = 15;
+        const rotationSpeed = 0.005;
+        let angle = 0;
+
+        // Render the scene
+        const animate = function () {
+            requestAnimationFrame(animate);
+
+            // Update camera position based on angle
+            angle += rotationSpeed;
+            camera.position.x = radius * Math.sin(angle);
+            camera.position.z = radius * Math.cos(angle);
+            camera.lookAt(0, 0, 0);
+
+            renderer.render(scene, camera);
+        };
+
+        animate();
+    </script>
+</body>
+</html>
