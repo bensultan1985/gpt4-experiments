@@ -1,0 +1,85 @@
+body {
+    font-family: Arial, sans-serif;
+    text-align: center;
+    background-color: #f4f4f4;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    margin-top: 100px;
+}
+
+#noteSelect, .note-button {
+    font-size: 18px;
+    padding: 5px;
+    display: block;
+    margin: 10px auto;
+}
+
+#playNote {
+    font-size: 18px;
+    padding: 10px 20px;
+    margin-top: 20px;
+    cursor: pointer;
+}
+
+.additional-notes {
+    margin-top: 20px;
+}
+
+.highlighted {
+    background-color: orange;
+}
+
+#noteSelect {
+    background-color: orange;
+}
+
+.note-row {
+    display: flex;
+  }
+  
+  .note-button {
+    margin: 5px;
+  }
+  
+  .note-label {
+    margin: 5px;
+    line-height: 30px;
+  }
+  
+  .highlighted {
+    background-color: yellow;
+  }
+  
+  .container {
+    text-align: center;
+    margin-top: 30px;
+}
+
+.note-button {
+    background-color: #f0f0f0;
+    border: 1px solid #ddd;
+    padding: 5px 10px;
+    margin: 5px;
+    cursor: pointer;
+}
+
+.note-button.highlighted {
+    background-color: #4CAF50;
+    color: white;
+}
+
+.note-label {
+    padding: 5px 10px;
+}
+
+.chord-name {
+    font-size: 1.5em;
+    margin-top: 20px;
+}
+
+#additionalNotes {
+    display: inline-block;
+}
