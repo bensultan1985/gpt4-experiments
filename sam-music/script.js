@@ -3,9 +3,9 @@ document
   .addEventListener("change", generateAdditionalNotes);
 document
   .getElementById("scaleSelect")
-  .addEventListener("change", handleChordTypeChange);
+  .addEventListener("change", generateAdditionalNotes);
 
-const chordTypes = {
+const Types = {
   "Major Triad": {
     defaultSelection: ["Root", "Major 3rd", "Perfect 5th"],
     structure: [
@@ -62,8 +62,6 @@ const chordTypes = {
   },
 };
 
-let selectedIntervals = [0, 4, 7, 12];
-
 function handleChordTypeChange() {
   generateAdditionalNotes();
 }
@@ -76,7 +74,7 @@ function playSelectedNotes() {
     (interval) => baseFrequency * Math.pow(2, interval / 12)
   );
 
-  additionalFrequencies.forEach((frequency) => {
+  additionalFrequencies.forEach((frequency, index) => {
     playSineWave(frequency);
   });
 
@@ -104,29 +102,30 @@ function playSineWave(frequency) {
 
 function generateAdditionalNotes() {
   const noteSelect = document.getElementById("noteSelect");
-  const scaleSelect = document.getElementById("scaleSelect");
   const baseFrequency = parseFloat(noteSelect.value);
 
   const additionalNotesContainer = document.getElementById("additionalNotes");
   additionalNotesContainer.innerHTML = "";
 
-  const chordType = scaleSelect.value;
-  const structure = chordTypes[chordType].structure;
-  const defaultSelection = chordTypes[chordType].defaultSelection;
+  const chordType = document.getElementById("scaleSelect").value;
+  const structure = Types[chordType].structure.slice().reverse();
+  const defaultSelection = Types[chordType].defaultSelection;
 
   selectedIntervals = [];
 
   structure.forEach((intervalName, index) => {
+    const reverseIndex = structure.length - 1 - index; // Index from the original order
+
     const noteButton = document.createElement("button");
     noteButton.classList.add("note-button");
     noteButton.textContent = intervalName;
-    noteButton.dataset.interval = index;
+    noteButton.dataset.interval = reverseIndex;
 
     const noteLabel = document.createElement("td");
     noteLabel.classList.add("note-label");
     noteLabel.textContent = getNoteName(
       noteSelect.options[noteSelect.selectedIndex].text,
-      index
+      reverseIndex
     );
 
     const noteButtonCell = document.createElement("td");
@@ -136,47 +135,46 @@ function generateAdditionalNotes() {
     row.appendChild(noteLabel);
     row.appendChild(noteButtonCell);
 
-    if (defaultSelection.includes(intervalName)) {
-      noteButton.classList.add("highlighted");
-      selectedIntervals.push(index);
-    }
-
     noteButton.addEventListener("click", () => {
       noteButton.classList.toggle("highlighted");
-      if (selectedIntervals.includes(index)) {
-        selectedIntervals = selectedIntervals.filter((i) => i !== index);
+      if (selectedIntervals.includes(reverseIndex)) {
+        selectedIntervals = selectedIntervals.filter((i) => i !== reverseIndex);
       } else {
-        selectedIntervals.push(index);
+        selectedIntervals.push(reverseIndex);
       }
     });
 
+    if (defaultSelection.includes(intervalName)) {
+      noteButton.classList.add("highlighted");
+      selectedIntervals.push(reverseIndex);
+    }
+
     additionalNotesContainer.appendChild(row);
   });
-
-  displayChordName();
 }
 
 function displayChordName() {
   const noteSelect = document.getElementById("noteSelect");
   const baseNote = noteSelect.options[noteSelect.selectedIndex].text;
 
-  const chordType = document.getElementById("scaleSelect").value;
-  document.getElementById("chordName").textContent = `${baseNote} ${chordType}`;
+  document.getElementById("chordName").textContent = `${baseNote} ${
+    document.getElementById("scaleSelect").value
+  }`;
 }
 
 function getNoteName(baseNote, interval) {
   const notes = [
     "C",
-    "Db",
+    "C#",
     "D",
-    "Eb",
+    "D#",
     "E",
     "F",
-    "Gb",
+    "F#",
     "G",
-    "Ab",
+    "G#",
     "A",
-    "Bb",
+    "A#",
     "B",
   ];
   const baseIndex = notes.indexOf(baseNote);
